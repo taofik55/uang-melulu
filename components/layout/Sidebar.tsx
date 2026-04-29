@@ -37,11 +37,15 @@ const nav = [
 export function Sidebar() {
   const pathname = usePathname()
   const [profile, setProfile] = React.useState<AppUser | null>(null)
+  const [profileLoading, setProfileLoading] = React.useState(true)
   const mountedRef = React.useRef(true)
 
   const fetchProfile = React.useCallback(async () => {
+    if (mountedRef.current) setProfileLoading(true)
+
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       if (mountedRef.current) setProfile(null)
+      if (mountedRef.current) setProfileLoading(false)
       return
     }
 
@@ -51,6 +55,7 @@ export function Sidebar() {
     } = await supabase.auth.getUser()
     if (!user) {
       if (mountedRef.current) setProfile(null)
+      if (mountedRef.current) setProfileLoading(false)
       return
     }
 
@@ -61,6 +66,7 @@ export function Sidebar() {
       .maybeSingle()
 
     if (mountedRef.current) setProfile((data ?? null) as AppUser | null)
+    if (mountedRef.current) setProfileLoading(false)
   }, [])
 
   React.useEffect(() => {
@@ -117,14 +123,26 @@ export function Sidebar() {
 
       <div className="pt-4 border-t border-border flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
-          <Avatar key={profile?.avatar_url ?? "no-avatar"} className="size-8">
-            {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
-            <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
-          </Avatar>
-          <div className="text-sm">
-            <div className="font-medium leading-tight">{displayName}</div>
-            <div className="text-xs text-muted-foreground">{subtitle}</div>
-          </div>
+          {profileLoading ? (
+            <>
+              <div className="size-8 rounded-full bg-muted border border-border animate-pulse" />
+              <div className="text-sm space-y-1">
+                <div className="h-3 w-20 rounded bg-muted border border-border animate-pulse" />
+                <div className="h-3 w-14 rounded bg-muted border border-border animate-pulse" />
+              </div>
+            </>
+          ) : (
+            <>
+              <Avatar key={profile?.avatar_url ?? "no-avatar"} className="size-8">
+                {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
+                <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
+              </Avatar>
+              <div className="text-sm">
+                <div className="font-medium leading-tight">{displayName}</div>
+                <div className="text-xs text-muted-foreground">{subtitle}</div>
+              </div>
+            </>
+          )}
         </div>
         <ThemeToggle />
       </div>

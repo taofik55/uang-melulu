@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils/cn"
 import { onDataChanged } from "@/lib/utils/events"
 import { usePathname } from "next/navigation"
 import { BarChart3, CreditCard, HandCoins, Home, PiggyBank, Settings, TrendingUp, Users } from "lucide-react"
+import Image from "next/image"
 
 export function TopBar() {
   const router = useRouter()
@@ -69,8 +70,8 @@ export function TopBar() {
 
   return (
     <div className="sticky top-0 z-20 border-b border-border bg-card/80 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="mx-auto max-w-6xl px-4 py-3 grid grid-cols-3 items-center">
+        <div className="flex items-center justify-start">
           <button
             type="button"
             className="grid size-9 place-items-center rounded-xl border border-border hover:bg-muted"
@@ -79,16 +80,22 @@ export function TopBar() {
           >
             <Menu className="size-4" />
           </button>
+        </div>
 
-          <Link href="/" className="flex items-center gap-2">
-            <div className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center border border-border">
-              <Wallet className="size-4" />
-            </div>
-            <div className="font-semibold">Uang Melulu</div>
+        <div className="flex items-center justify-center">
+          <Link href="/" aria-label="Beranda" className="inline-flex items-center">
+            <Image
+              src="/uang-melulu.png"
+              alt="Uang Melulu"
+              width={160}
+              height={40}
+              priority
+              className="h-7 w-auto"
+            />
           </Link>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <ThemeToggle />
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>

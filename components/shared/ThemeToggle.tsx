@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const isDark = theme === "dark"
 
   return (
@@ -18,7 +24,7 @@ export function ThemeToggle() {
       aria-label={isDark ? "Aktifkan mode terang" : "Aktifkan mode gelap"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {mounted ? (isDark ? <Sun className="size-4" /> : <Moon className="size-4" />) : <span className="size-4" />}
     </Button>
   )
 }
