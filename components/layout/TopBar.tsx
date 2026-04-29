@@ -1,72 +1,86 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Menu, Wallet } from "lucide-react"
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
+import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Menu, Wallet } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
-import { ThemeToggle } from "@/components/shared/ThemeToggle"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { createSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { User as AppUser } from "@/lib/types/database"
-import { cn } from "@/lib/utils/cn"
-import { onDataChanged } from "@/lib/utils/events"
-import { usePathname } from "next/navigation"
-import { BarChart3, CreditCard, HandCoins, Home, PiggyBank, Settings, TrendingUp, Users } from "lucide-react"
-import Image from "next/image"
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { User as AppUser } from "@/lib/types/database";
+import { cn } from "@/lib/utils/cn";
+import { onDataChanged } from "@/lib/utils/events";
+import { usePathname } from "next/navigation";
+import {
+  BarChart3,
+  CreditCard,
+  HandCoins,
+  Home,
+  PiggyBank,
+  Settings,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
 
 export function TopBar() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [profile, setProfile] = React.useState<AppUser | null>(null)
-  const mountedRef = React.useRef(true)
-  const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
+  const router = useRouter();
+  const pathname = usePathname();
+  const [profile, setProfile] = React.useState<AppUser | null>(null);
+  const mountedRef = React.useRef(true);
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const fetchProfile = React.useCallback(async () => {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      if (mountedRef.current) setProfile(null)
-      return
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
+      if (mountedRef.current) setProfile(null);
+      return;
     }
 
-    const supabase = createSupabaseBrowserClient()
+    const supabase = createSupabaseBrowserClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
     if (!user) {
-      if (mountedRef.current) setProfile(null)
-      return
+      if (mountedRef.current) setProfile(null);
+      return;
     }
 
     const { data } = await supabase
       .from("users")
-      .select("id,username,full_name,avatar_url,is_active,created_at,updated_at")
+      .select(
+        "id,username,full_name,avatar_url,is_active,created_at,updated_at",
+      )
       .eq("id", user.id)
-      .maybeSingle()
+      .maybeSingle();
 
-    if (mountedRef.current) setProfile((data ?? null) as AppUser | null)
-  }, [])
+    if (mountedRef.current) setProfile((data ?? null) as AppUser | null);
+  }, []);
 
   React.useEffect(() => {
-    mountedRef.current = true
-    fetchProfile().catch(() => {})
+    mountedRef.current = true;
+    fetchProfile().catch(() => {});
     const off = onDataChanged((key) => {
-      if (key === "profile") fetchProfile()
-    })
+      if (key === "profile") fetchProfile();
+    });
     return () => {
-      mountedRef.current = false
-      off()
-    }
-  }, [fetchProfile])
+      mountedRef.current = false;
+      off();
+    };
+  }, [fetchProfile]);
 
-  const displayName = profile?.full_name?.trim() || profile?.username || "Kamu"
+  const displayName = profile?.full_name?.trim() || profile?.username || "Kamu";
   const initials = displayName
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
-    .join("")
+    .join("");
 
   return (
     <div className="sticky top-0 z-20 border-b border-border bg-card/80 backdrop-blur">
@@ -83,7 +97,11 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center justify-center">
-          <Link href="/" aria-label="Beranda" className="inline-flex items-center">
+          <Link
+            href="/"
+            aria-label="Beranda"
+            className="inline-flex items-center"
+          >
             <Image
               src="/uang-melulu.png"
               alt="Uang Melulu"
@@ -99,10 +117,21 @@ export function TopBar() {
           <ThemeToggle />
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button type="button" className="rounded-full" aria-label="Menu akun">
-                <Avatar key={profile?.avatar_url ?? "no-avatar"} className="size-9">
-                  {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
-                  <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
+              <button
+                type="button"
+                className="rounded-full"
+                aria-label="Menu akun"
+              >
+                <Avatar
+                  key={profile?.avatar_url ?? "no-avatar"}
+                  className="size-9"
+                >
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} alt={displayName} />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/15 text-primary">
+                    {initials || "UM"}
+                  </AvatarFallback>
                 </Avatar>
               </button>
             </DropdownMenu.Trigger>
@@ -112,12 +141,16 @@ export function TopBar() {
                 align="end"
                 className={cn(
                   "z-50 min-w-[210px] rounded-xl border border-border bg-card p-1 shadow-md outline-none",
-                  "data-[state=open]:animate-in data-[state=closed]:animate-out"
+                  "data-[state=open]:animate-in data-[state=closed]:animate-out",
                 )}
               >
                 <div className="px-3 py-2">
-                  <div className="text-sm font-medium leading-tight">{displayName}</div>
-                  <div className="text-xs text-muted-foreground">{profile?.username ? `@${profile.username}` : ""}</div>
+                  <div className="text-sm font-medium leading-tight">
+                    {displayName}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {profile?.username ? `@${profile.username}` : ""}
+                  </div>
                 </div>
                 <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
@@ -133,10 +166,10 @@ export function TopBar() {
                 <DropdownMenu.Item
                   className="flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-muted text-accent-red"
                   onSelect={async (e) => {
-                    e.preventDefault()
-                    const supabase = createSupabaseBrowserClient()
-                    await supabase.auth.signOut()
-                    router.replace("/login")
+                    e.preventDefault();
+                    const supabase = createSupabaseBrowserClient();
+                    await supabase.auth.signOut();
+                    router.replace("/login");
                   }}
                 >
                   Logout
@@ -147,12 +180,15 @@ export function TopBar() {
         </div>
       </div>
 
-      <DialogPrimitive.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+      <DialogPrimitive.Root
+        open={mobileNavOpen}
+        onOpenChange={setMobileNavOpen}
+      >
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay
             className={cn(
               "fixed inset-0 z-40 bg-black/60 transition-opacity",
-              "data-[state=open]:opacity-100 data-[state=closed]:opacity-0"
+              "data-[state=open]:opacity-100 data-[state=closed]:opacity-0",
             )}
           />
           <DialogPrimitive.Content
@@ -160,11 +196,11 @@ export function TopBar() {
               "fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] border-r border-border bg-card shadow-2xl outline-none",
               "rounded-r-2xl",
               "transition-transform duration-300 ease-out",
-              "data-[state=open]:translate-x-0 data-[state=closed]:-translate-x-full"
+              "data-[state=open]:translate-x-0 data-[state=closed]:-translate-x-full",
             )}
           >
             <div className="flex h-dvh flex-col">
-              <div className="flex items-center gap-2 border-b border-border px-3 py-3">
+              <div className="flex h-16 items-center gap-2 border-b border-border px-4">
                 <button
                   type="button"
                   className="grid size-9 place-items-center rounded-xl border border-border hover:bg-muted"
@@ -176,41 +212,21 @@ export function TopBar() {
                 <div className="text-sm font-semibold">Menu</div>
               </div>
 
-              <div className="px-3 pt-3">
-                <Link
-                  href="/"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 hover:bg-muted"
-                >
-                  <div className="grid size-9 place-items-center rounded-xl border border-border bg-primary/15 text-primary">
-                    <Wallet className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold leading-tight">Uang Melulu</div>
-                    <div className="text-xs text-muted-foreground">Kelola finansial harian</div>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="px-3 pt-3">
-                <Link
-                  href="/pengaturan"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 hover:bg-muted"
-                >
-                  <Avatar key={profile?.avatar_url ?? "no-avatar"} className="size-9">
-                    {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
-                    <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium leading-tight truncate">{displayName}</div>
-                    <div className="text-xs text-muted-foreground truncate">{profile?.username ? `@${profile.username}` : ""}</div>
-                  </div>
-                </Link>
+              <div className="flex items-center justify-center">
+                <Image
+                  src="/uang-melulu.png"
+                  alt="Uang Melulu"
+                  width={160}
+                  height={40}
+                  priority
+                  className="h-auto w-1/3"
+                />
               </div>
 
               <div className="mt-4 flex-1 overflow-y-auto px-2 pb-4">
-                <div className="px-2 pb-2 text-xs font-medium text-muted-foreground">Navigasi</div>
+                <div className="px-2 pb-2 text-xs font-medium text-muted-foreground">
+                  Navigasi
+                </div>
                 <nav className="space-y-1">
                   <MobileNavItem
                     href="/"
@@ -277,12 +293,57 @@ export function TopBar() {
                   />
                 </nav>
               </div>
+
+              <div className="px-3 pb-6 pt-3">
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left hover:bg-muted"
+                      aria-label="Menu akun"
+                    >
+                      <Avatar key={profile?.avatar_url ?? "no-avatar"} className="size-9">
+                        {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
+                        <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium leading-tight truncate">{displayName}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {profile?.username ? `@${profile.username}` : ""}
+                        </div>
+                      </div>
+                    </button>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      side="top"
+                      align="start"
+                      sideOffset={10}
+                      className="z-50 min-w-[220px] rounded-xl border border-border bg-card p-1 shadow-md outline-none"
+                    >
+                      <DropdownMenu.Item
+                        className="flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-muted text-accent-red"
+                        onSelect={async (e) => {
+                          e.preventDefault()
+                          setMobileNavOpen(false)
+                          const supabase = createSupabaseBrowserClient()
+                          await supabase.auth.signOut()
+                          router.replace("/login")
+                        }}
+                      >
+                        Logout
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              </div>
+              
             </div>
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
     </div>
-  )
+  );
 }
 
 function MobileNavItem({
@@ -292,11 +353,11 @@ function MobileNavItem({
   active,
   onNavigate,
 }: {
-  href: string
-  label: string
-  icon: typeof Wallet
-  active: boolean
-  onNavigate: () => void
+  href: string;
+  label: string;
+  icon: typeof Wallet;
+  active: boolean;
+  onNavigate: () => void;
 }) {
   return (
     <Link
@@ -304,12 +365,11 @@ function MobileNavItem({
       onClick={onNavigate}
       className={cn(
         "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition hover:bg-muted",
-        active && "bg-primary/15 text-primary"
+        active && "bg-primary/15 text-primary",
       )}
     >
       <Icon className="size-4" />
       <span>{label}</span>
     </Link>
-  )
+  );
 }
-
