@@ -1,7 +1,6 @@
 import type { ReactNode } from "react"
 
 import { Sidebar } from "@/components/layout/Sidebar"
-import { BottomNav } from "@/components/layout/BottomNav"
 import { TopBar } from "@/components/layout/TopBar"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -17,13 +16,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <TopBar />
           </div>
 
-          <main className="flex-1 px-4 pb-24 pt-4 md:pb-8 md:pt-8">
+          <main className="flex-1 px-4 pb-8 pt-4 md:pb-8 md:pt-8">
             <div className="mx-auto w-full max-w-6xl">{children}</div>
           </main>
-
-          <div className="md:hidden">
-            <BottomNav />
-          </div>
         </div>
       </div>
     </div>
