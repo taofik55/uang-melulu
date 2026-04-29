@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -16,7 +17,9 @@ import {
 
 import { cn } from "@/lib/utils/cn"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
+import type { User as AppUser } from "@/lib/types/database"
 
 const nav = [
   { href: "/", label: "Beranda", icon: Home },
@@ -32,9 +35,45 @@ const nav = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [profile, setProfile] = React.useState<AppUser | null>(null)
+
+  React.useEffect(() => {
+    let mounted = true
+    async function load() {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return
+      const supabase = createSupabaseBrowserClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from("users")
+        .select("id,username,full_name,avatar_url,is_active,created_at,updated_at")
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (!mounted) return
+      setProfile((data ?? null) as AppUser | null)
+    }
+
+    load().catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const displayName = profile?.full_name?.trim() || profile?.username || "Kamu"
+  const subtitle = profile?.username ? `@${profile.username}` : "Akun"
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("")
 
   return (
-    <div className="h-full px-3 py-4 flex flex-col">
+    <div className="h-dvh min-h-dvh px-3 py-4 flex flex-col min-h-0">
       <div className="px-2 pb-4">
         <div className="flex items-center gap-2">
           <div className="size-9 rounded-xl bg-primary/15 text-primary grid place-items-center border border-border">
@@ -44,7 +83,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto pr-1">
         {nav.map((item) => {
           const active = pathname === item.href
           const Icon = item.icon
@@ -67,11 +106,12 @@ export function Sidebar() {
       <div className="pt-4 border-t border-border flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
           <Avatar className="size-8">
-            <AvatarFallback className="bg-primary/15 text-primary">UM</AvatarFallback>
+            {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
+            <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
           </Avatar>
           <div className="text-sm">
-            <div className="font-medium leading-tight">Kamu</div>
-            <div className="text-xs text-muted-foreground">Demo</div>
+            <div className="font-medium leading-tight">{displayName}</div>
+            <div className="text-xs text-muted-foreground">{subtitle}</div>
           </div>
         </div>
         <ThemeToggle />

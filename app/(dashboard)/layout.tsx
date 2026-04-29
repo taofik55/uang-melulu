@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-background">
       <div className="md:flex md:min-h-dvh">
-        <aside className="hidden md:block md:w-[240px] md:border-r md:border-border md:bg-card">
+        <aside className="hidden md:sticky md:top-0 md:block md:h-dvh md:w-[240px] md:border-r md:border-border md:bg-card">
           <Sidebar />
         </aside>
 
