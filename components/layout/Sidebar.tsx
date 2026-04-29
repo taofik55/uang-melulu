@@ -20,6 +20,7 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { User as AppUser } from "@/lib/types/database"
+import { onDataChanged } from "@/lib/utils/events"
 
 const nav = [
   { href: "/", label: "Beranda", icon: Home },
@@ -36,32 +37,43 @@ const nav = [
 export function Sidebar() {
   const pathname = usePathname()
   const [profile, setProfile] = React.useState<AppUser | null>(null)
+  const mountedRef = React.useRef(true)
+
+  const fetchProfile = React.useCallback(async () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      if (mountedRef.current) setProfile(null)
+      return
+    }
+
+    const supabase = createSupabaseBrowserClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      if (mountedRef.current) setProfile(null)
+      return
+    }
+
+    const { data } = await supabase
+      .from("users")
+      .select("id,username,full_name,avatar_url,is_active,created_at,updated_at")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (mountedRef.current) setProfile((data ?? null) as AppUser | null)
+  }, [])
 
   React.useEffect(() => {
-    let mounted = true
-    async function load() {
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return
-      const supabase = createSupabaseBrowserClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data } = await supabase
-        .from("users")
-        .select("id,username,full_name,avatar_url,is_active,created_at,updated_at")
-        .eq("id", user.id)
-        .maybeSingle()
-
-      if (!mounted) return
-      setProfile((data ?? null) as AppUser | null)
-    }
-
-    load().catch(() => {})
+    mountedRef.current = true
+    fetchProfile().catch(() => {})
+    const off = onDataChanged((key) => {
+      if (key === "profile") fetchProfile()
+    })
     return () => {
-      mounted = false
+      mountedRef.current = false
+      off()
     }
-  }, [])
+  }, [fetchProfile])
 
   const displayName = profile?.full_name?.trim() || profile?.username || "Kamu"
   const subtitle = profile?.username ? `@${profile.username}` : "Akun"
@@ -105,7 +117,7 @@ export function Sidebar() {
 
       <div className="pt-4 border-t border-border flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
-          <Avatar className="size-8">
+          <Avatar key={profile?.avatar_url ?? "no-avatar"} className="size-8">
             {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={displayName} /> : null}
             <AvatarFallback className="bg-primary/15 text-primary">{initials || "UM"}</AvatarFallback>
           </Avatar>
