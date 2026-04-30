@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CurrencyInput } from "@/components/shared/CurrencyInput"
+import { SelectPopover } from "@/components/shared/SelectPopover"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { emitDataChanged } from "@/lib/utils/events"
 
@@ -37,18 +38,19 @@ export function AddInvestmentModal() {
           </div>
           <div className="space-y-2">
             <Label>Tipe</Label>
-            <select
-              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+            <SelectPopover
               value={type}
-              onChange={(e) => setType(e.target.value)}
-            >
-              <option value="stocks">Saham</option>
-              <option value="mutual_fund">Reksa Dana</option>
-              <option value="crypto">Kripto</option>
-              <option value="gold">Emas</option>
-              <option value="deposit">Deposito</option>
-              <option value="other">Lainnya</option>
-            </select>
+              onChange={setType}
+              placeholder="Pilih tipe…"
+              options={[
+                { value: "stocks", label: "Saham" },
+                { value: "mutual_fund", label: "Reksa Dana" },
+                { value: "crypto", label: "Kripto" },
+                { value: "gold", label: "Emas" },
+                { value: "deposit", label: "Deposito" },
+                { value: "other", label: "Lainnya" },
+              ]}
+            />
           </div>
           <div className="space-y-2">
             <Label>Platform (opsional)</Label>

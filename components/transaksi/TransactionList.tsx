@@ -11,14 +11,44 @@ import { useAccounts } from "@/lib/hooks/useAccounts"
 import { useCategories } from "@/lib/hooks/useCategories"
 import { groupByDate } from "@/lib/utils/date"
 import { AddTransactionModal } from "@/components/transaksi/AddTransactionModal"
+import type { TransactionType } from "@/lib/types/database"
 
-export function TransactionList() {
+export function TransactionList({
+  type = "all",
+  query = "",
+}: {
+  type?: "all" | TransactionType
+  query?: string
+}) {
   const { data, loading } = useTransactions()
   const { data: accounts } = useAccounts()
   const { data: categories } = useCategories()
-  const grouped = useMemo(() => groupByDate(data), [data])
   const accountMap = useMemo(() => new Map(accounts.map((a) => [a.id, a.name])), [accounts])
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
+  const normalizedQuery = query.trim().toLowerCase()
+
+  const filtered = useMemo(() => {
+    let rows = data
+
+    if (type !== "all") {
+      rows = rows.filter((t) => t.type === type)
+    }
+
+    if (!normalizedQuery) return rows
+
+    return rows.filter((t) => {
+      const accountName = accountMap.get(t.account_id) ?? ""
+      const categoryName = t.category_id ? categoryMap.get(t.category_id)?.name ?? "" : ""
+      const note = t.note ?? ""
+      return (
+        note.toLowerCase().includes(normalizedQuery) ||
+        accountName.toLowerCase().includes(normalizedQuery) ||
+        categoryName.toLowerCase().includes(normalizedQuery)
+      )
+    })
+  }, [data, type, normalizedQuery, accountMap, categoryMap])
+
+  const grouped = useMemo(() => groupByDate(filtered), [filtered])
 
   return (
     <div className="space-y-3">
@@ -46,7 +76,9 @@ export function TransactionList() {
       ) : grouped.length === 0 ? (
         <Card className="bg-card border-border p-6 text-center">
           <div className="font-semibold">Belum ada data</div>
-          <div className="text-sm text-muted-foreground mt-1">Belum ada transaksi. Yuk mulai catat!</div>
+          <div className="text-sm text-muted-foreground mt-1">
+            {query.trim() || type !== "all" ? "Tidak ada transaksi yang cocok dengan filter." : "Belum ada transaksi. Yuk mulai catat!"}
+          </div>
         </Card>
       ) : (
         grouped.map((g) => (

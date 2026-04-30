@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { CurrencyInput } from "@/components/shared/CurrencyInput"
+import { SelectPopover } from "@/components/shared/SelectPopover"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useCategories } from "@/lib/hooks/useCategories"
 import { emitDataChanged } from "@/lib/utils/events"
@@ -35,18 +36,21 @@ export function SetBudgetModal() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Kategori</Label>
-            <select
-              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+            <SelectPopover
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              <option value="">Pilih kategori…</option>
-              {expenseCategories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.icon} {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={setCategoryId}
+              placeholder="Pilih kategori…"
+              options={expenseCategories.map((c) => ({
+                value: c.id,
+                label: (
+                  <span className="flex items-center gap-2">
+                    <span className="text-base">{c.icon ?? "✨"}</span>
+                    <span className="truncate">{c.name}</span>
+                  </span>
+                ),
+                textValue: c.name,
+              }))}
+            />
           </div>
 
           <div className="space-y-2">
@@ -56,15 +60,16 @@ export function SetBudgetModal() {
 
           <div className="space-y-2">
             <Label>Periode</Label>
-            <select
-              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+            <SelectPopover
               value={period}
-              onChange={(e) => setPeriod(e.target.value as BudgetPeriod)}
-            >
-              <option value="weekly">Mingguan</option>
-              <option value="monthly">Bulanan</option>
-              <option value="yearly">Tahunan</option>
-            </select>
+              onChange={(v) => setPeriod(v as BudgetPeriod)}
+              placeholder="Pilih periode…"
+              options={[
+                { value: "weekly", label: "Mingguan" },
+                { value: "monthly", label: "Bulanan" },
+                { value: "yearly", label: "Tahunan" },
+              ]}
+            />
           </div>
 
           <div className="flex justify-end gap-2">

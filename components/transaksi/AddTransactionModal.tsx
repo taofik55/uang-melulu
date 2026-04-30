@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CurrencyInput } from "@/components/shared/CurrencyInput"
 import { CategoryPicker } from "@/components/shared/CategoryPicker"
+import { SelectPopover } from "@/components/shared/SelectPopover"
 
 import type { TransactionType, CategoryType } from "@/lib/types/database"
 import { useAccounts } from "@/lib/hooks/useAccounts"
@@ -143,18 +144,12 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
             </div>
             <div className="space-y-2">
               <Label>Akun</Label>
-              <select
-                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+              <SelectPopover
                 value={form.watch("account_id")}
-                onChange={(e) => form.setValue("account_id", e.target.value, { shouldValidate: true })}
-              >
-                <option value="">Pilih akun…</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(id) => form.setValue("account_id", id, { shouldValidate: true })}
+                placeholder="Pilih akun…"
+                options={accounts.map((a) => ({ value: a.id, label: a.name, textValue: a.name }))}
+              />
               {form.formState.errors.account_id ? (
                 <div className="text-sm text-accent-red">{form.formState.errors.account_id.message}</div>
               ) : null}

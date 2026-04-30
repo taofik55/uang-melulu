@@ -199,6 +199,10 @@ export function TopBar() {
               "data-[state=open]:translate-x-0 data-[state=closed]:-translate-x-full",
             )}
           >
+            <DialogPrimitive.Title className="sr-only">Menu</DialogPrimitive.Title>
+            <DialogPrimitive.Description className="sr-only">
+              Navigasi utama aplikasi dan menu akun.
+            </DialogPrimitive.Description>
             <div className="flex h-dvh flex-col">
               <div className="flex h-16 items-center gap-2 border-b border-border px-4">
                 <button
@@ -212,7 +216,7 @@ export function TopBar() {
                 <div className="text-sm font-semibold">Menu</div>
               </div>
 
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center py-4">
                 <Image
                   src="/uang-melulu.png"
                   alt="Uang Melulu"
