@@ -44,6 +44,7 @@ function typeToCategoryType(type: TransactionType): CategoryType {
 export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const { data: accounts } = useAccounts();
+  const formId = React.useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -116,7 +117,11 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
         </DialogHeader>
 
         <div className="overflow-y-auto flex-1 px-1">
-          <form className="space-y-4 py-4" onSubmit={form.handleSubmit(submit)}>
+          <form
+            id={formId}
+            className="space-y-4 py-4"
+            onSubmit={form.handleSubmit(submit)}
+          >
             <Tabs
               value={type}
               onValueChange={(v) => form.setValue("type", v as TransactionType)}
@@ -207,12 +212,12 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
             </div>
           </form>
         </div>
-        
+
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             Batal
           </Button>
-          <Button type="submit" form="add-transaction-form">
+          <Button type="submit" form={formId}>
             Simpan
           </Button>
         </div>
