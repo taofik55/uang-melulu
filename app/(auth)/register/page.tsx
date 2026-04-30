@@ -82,7 +82,7 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success("Pendaftaran berhasil. Silakan masuk.");
+      toast.success("Pendaftaran berhasil. Silakan cek email anda.");
       router.replace("/login");
     } catch {
       toast.error("Terjadi kesalahan. Coba lagi.");

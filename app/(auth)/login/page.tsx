@@ -89,6 +89,30 @@ export default function LoginPage() {
       });
 
       if (error) {
+        const msg = error.message.toLowerCase();
+        const emailNotConfirmed =
+          msg.includes("email not confirmed") ||
+          msg.includes("email_not_confirmed") ||
+          (msg.includes("email") && msg.includes("confirm"));
+
+        if (emailNotConfirmed) {
+          try {
+            const { error: resendError } = await supabase.auth.resend({
+              type: "signup",
+              email: values.email,
+            });
+            if (resendError) {
+              toast.error("Email belum diverifikasi. Cek inbox/spam untuk link verifikasi.");
+              return;
+            }
+            toast.error("Email belum diverifikasi. Link verifikasi sudah dikirim ulang (cek inbox/spam).");
+            return;
+          } catch {
+            toast.error("Email belum diverifikasi. Cek inbox/spam untuk link verifikasi.");
+            return;
+          }
+        }
+
         toast.error("Email atau kata sandi salah");
         return;
       }
