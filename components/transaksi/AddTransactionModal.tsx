@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { CalendarDays } from "lucide-react";
 
 import {
   Dialog,
@@ -20,11 +21,16 @@ import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/shared/CurrencyInput";
 import { CategoryPicker } from "@/components/shared/CategoryPicker";
 import { SelectPopover } from "@/components/shared/SelectPopover";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils/cn";
 
 import type { TransactionType, CategoryType } from "@/lib/types/database";
 import { useAccounts } from "@/lib/hooks/useAccounts";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { emitDataChanged } from "@/lib/utils/events";
+import { format, parseISO } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 
 const schema = z.object({
   type: z.enum(["expense", "income", "transfer"]),
@@ -111,7 +117,7 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
+      <DialogContent className="w-full max-w-[calc(100vw-1rem)] sm:max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Tambah Transaksi</DialogTitle>
         </DialogHeader>
@@ -158,7 +164,43 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Tanggal</Label>
-                <Input type="date" {...form.register("transaction_date")} />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-border bg-background px-3 text-sm outline-none transition-colors",
+                        "hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      )}
+                    >
+                      <span className="truncate">
+                        {form.watch("transaction_date")
+                          ? format(parseISO(form.watch("transaction_date")), "d MMM yyyy", {
+                              locale: idLocale,
+                            })
+                          : "Pilih tanggal…"}
+                      </span>
+                      <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="p-0">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        form.watch("transaction_date")
+                          ? parseISO(form.watch("transaction_date"))
+                          : undefined
+                      }
+                      locale={idLocale}
+                      weekStartsOn={1}
+                      onSelect={(d) => {
+                        if (!d) return
+                        form.setValue("transaction_date", format(d, "yyyy-MM-dd"), { shouldValidate: true })
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 {form.formState.errors.transaction_date ? (
                   <div className="text-sm text-accent-red">
                     {form.formState.errors.transaction_date.message}
