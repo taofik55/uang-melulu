@@ -13,11 +13,13 @@ export function TransactionRow({
   categoryLabel,
   categoryIcon,
   accountLabel,
+  toAccountLabel,
 }: {
   transaction: Transaction
   categoryLabel?: string
   categoryIcon?: string | null
   accountLabel?: string
+  toAccountLabel?: string
 }) {
   const icon = categoryIcon ?? "✨"
   const label = categoryLabel ?? "Tanpa kategori"
@@ -54,7 +56,9 @@ export function TransactionRow({
           </div>
           <div className="mt-2 flex items-center justify-between">
             <Badge variant="secondary" className="text-xs">
-              {accountLabel ?? "Akun"}
+              {toAccountLabel
+                ? `${accountLabel ?? "Akun"} → ${toAccountLabel}`
+                : accountLabel ?? "Akun"}
             </Badge>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Icon className="size-3" />

@@ -6,6 +6,7 @@ export type DataKey =
   | "savings"
   | "loans"
   | "investments"
+  | "transfers"
   | "family"
   | "profile"
 

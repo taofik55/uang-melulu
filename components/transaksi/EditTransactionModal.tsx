@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Trash2 } from "lucide-react";
 
 import {
   Dialog,
@@ -29,7 +29,11 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils/cn";
 
-import type { TransactionType, CategoryType } from "@/lib/types/database";
+import type {
+  Transaction,
+  TransactionType,
+  CategoryType,
+} from "@/lib/types/database";
 import { useAccounts } from "@/lib/hooks/useAccounts";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { emitDataChanged } from "@/lib/utils/events";
@@ -41,7 +45,6 @@ const schema = z.object({
   amount: z.number().positive("Jumlah tidak boleh kosong"),
   transaction_date: z.string().min(1, "Tanggal wajib diisi"),
   account_id: z.string().min(1, "Akun wajib dipilih"),
-  to_account_id: z.string().optional(),
   category_id: z.string().nullable(),
   note: z.string().optional(),
 });
@@ -52,7 +55,13 @@ function typeToCategoryType(type: TransactionType): CategoryType {
   return type === "income" ? "income" : "expense";
 }
 
-export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
+export function EditTransactionModal({
+  transaction,
+  trigger,
+}: {
+  transaction: Transaction;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = React.useState(false);
   const { data: accounts } = useAccounts();
   const formId = React.useId();
@@ -60,12 +69,12 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      type: "expense",
-      amount: 0,
-      transaction_date: new Date().toISOString().slice(0, 10),
-      account_id: "",
-      category_id: null,
-      note: "",
+      type: transaction.type,
+      amount: transaction.amount,
+      transaction_date: transaction.transaction_date,
+      account_id: transaction.account_id,
+      category_id: transaction.category_id,
+      note: transaction.note || "",
     },
   });
 
@@ -84,73 +93,55 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
         return;
       }
 
-      if (type === "transfer") {
-        const fromTx = {
-          user_id: user.id,
-          account_id: values.account_id,
-          category_id: null,
-          type: "transfer" as const,
-          amount: values.amount,
-          note: values.note || null,
-          transaction_date: values.transaction_date,
-        };
-        const toTx = {
-          user_id: user.id,
-          account_id: values.to_account_id,
-          category_id: null,
-          type: "transfer" as const,
-          amount: values.amount,
-          note: values.note || null,
-          transaction_date: values.transaction_date,
-        };
-        const { data: inserted, error: insertError } = await supabase
-          .from("transactions")
-          .insert([fromTx, toTx])
-          .select();
-        if (insertError) {
-          toast.error(insertError.message);
-          return;
-        }
-        const [fromInserted, toInserted] = inserted;
-        const { error: transferError } = await supabase
-          .from("transfers")
-          .insert({
-            from_transaction_id: fromInserted.id,
-            to_transaction_id: toInserted.id,
-            amount: values.amount,
-          });
-        if (transferError) {
-          toast.error(transferError.message);
-          return;
-        }
-      } else {
-        const { error } = await supabase.from("transactions").insert({
-          user_id: user.id,
+      const { error } = await supabase
+        .from("transactions")
+        .update({
           account_id: values.account_id,
           category_id: values.category_id,
           type: values.type,
           amount: values.amount,
           note: values.note || null,
           transaction_date: values.transaction_date,
-        });
-        if (error) {
-          toast.error(error.message);
-          return;
-        }
+        })
+        .eq("id", transaction.id);
+
+      if (error) {
+        toast.error(error.message);
+        return;
       }
 
       emitDataChanged("transactions");
       emitDataChanged("accounts");
-      if (type === "transfer") emitDataChanged("transfers");
+      emitDataChanged("transfers");
       setOpen(false);
-      form.reset({
-        ...values,
-        amount: 0,
-        note: "",
-      });
-      toast.success("Transaksi disimpan!");
+      toast.success("Transaksi diperbarui!");
     } catch {
       toast.error("Gagal simpan transaksi");
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) return;
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", transaction.id);
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      emitDataChanged("transactions");
+      emitDataChanged("accounts");
+      emitDataChanged("transfers");
+      setOpen(false);
+      toast.success("Transaksi dihapus");
+    } catch {
+      toast.error("Gagal menghapus transaksi");
     }
   }
 
@@ -158,8 +149,17 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="w-full max-w-[calc(100vw-1rem)] sm:max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
-        <DialogHeader>
-          <DialogTitle>Tambah Transaksi</DialogTitle>
+        <DialogHeader className="flex flex-row items-center justify-between pr-6 border-b border-border pb-3">
+          <DialogTitle>Ubah Transaksi</DialogTitle>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-accent-red hover:bg-accent-red/10 transition"
+            aria-label="Hapus transaksi"
+          >
+            <Trash2 className="size-3.5" />
+            <span>Hapus</span>
+          </button>
         </DialogHeader>
 
         <div className="overflow-y-auto flex-1 px-1">
@@ -188,7 +188,6 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
             <div className="space-y-2">
               <Label>Jumlah</Label>
               <CurrencyInput
-                autoFocus
                 value={form.watch("amount")}
                 onValueChange={(v) =>
                   form.setValue("amount", v, { shouldValidate: true })
@@ -269,23 +268,6 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
                     textValue: a.name,
                   }))}
                 />
-                {type === "transfer" && (
-                  <div className="space-y-2">
-                    <Label>Ke Akun</Label>
-                    <SelectPopover
-                      value={form.watch("to_account_id") ?? ""}
-                      onChange={(id) => form.setValue("to_account_id", id)}
-                      placeholder="Pilih akun tujuan…"
-                      options={accounts
-                        .filter((a) => a.id !== form.watch("account_id"))
-                        .map((a) => ({
-                          value: a.id,
-                          label: a.name,
-                          textValue: a.name,
-                        }))}
-                    />
-                  </div>
-                )}
                 {form.formState.errors.account_id ? (
                   <div className="text-sm text-accent-red">
                     {form.formState.errors.account_id.message}
@@ -308,7 +290,7 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
             <div className="space-y-2">
               <Label>Catatan (opsional)</Label>
               <Input
-                placeholder="Contoh: tarik tunai"
+                placeholder="Contoh: makan siang"
                 {...form.register("note")}
               />
             </div>

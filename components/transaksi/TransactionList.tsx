@@ -11,6 +11,8 @@ import { useAccounts } from "@/lib/hooks/useAccounts"
 import { useCategories } from "@/lib/hooks/useCategories"
 import { groupByDate } from "@/lib/utils/date"
 import { AddTransactionModal } from "@/components/transaksi/AddTransactionModal"
+import { EditTransactionModal } from "@/components/transaksi/EditTransactionModal"
+import { useTransfers } from "@/lib/hooks/useTransfers";
 import type { TransactionType } from "@/lib/types/database"
 
 export function TransactionList({
@@ -26,6 +28,15 @@ export function TransactionList({
   const accountMap = useMemo(() => new Map(accounts.map((a) => [a.id, a.name])), [accounts])
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
   const normalizedQuery = query.trim().toLowerCase()
+
+  const { data: transfers } = useTransfers();
+  const transactionMap = useMemo(() => {
+    const map = new Map<string, any>();
+    data.forEach((t) => {
+      map.set(t.id, t);
+    });
+    return map;
+  }, [data]);
 
   const filtered = useMemo(() => {
     let rows = data
@@ -48,7 +59,35 @@ export function TransactionList({
     })
   }, [data, type, normalizedQuery, accountMap, categoryMap])
 
-  const grouped = useMemo(() => groupByDate(filtered), [filtered])
+  const grouped = useMemo(() => {
+    const groups = groupByDate(filtered);
+    const skipped = new Set<string>();
+    return groups.map((g) => {
+      const rows = g.data.filter((t) => {
+        if (skipped.has(t.id)) return false;
+        // Find any transfer involving this transaction
+        const tr = transfers?.find(
+          (tr) => tr.from_transaction_id === t.id || tr.to_transaction_id === t.id
+        );
+        if (tr) {
+          // If this is the source transaction, attach destination label and skip the dest
+          if (tr.from_transaction_id === t.id) {
+            const toTx = transactionMap.get(tr.to_transaction_id);
+            if (toTx) {
+              const toAccount = accountMap.get(toTx.account_id);
+              (t as any).toAccountLabel = toAccount;
+              skipped.add(toTx.id);
+            }
+            return true;
+          }
+          // This is the destination transaction; skip it
+          return false;
+        }
+        return true;
+      });
+      return { ...g, data: rows };
+    });
+  }, [filtered, transfers, transactionMap, accountMap]);
 
   return (
     <div className="space-y-3">
@@ -91,12 +130,23 @@ export function TransactionList({
             </div>
             <div className="space-y-2">
               {g.data.map((t) => (
-                <TransactionRow
+                <EditTransactionModal
                   key={t.id}
                   transaction={t}
-                  accountLabel={accountMap.get(t.account_id)}
-                  categoryLabel={t.category_id ? categoryMap.get(t.category_id)?.name : "Tanpa kategori"}
-                  categoryIcon={t.category_id ? categoryMap.get(t.category_id)?.icon : "✨"}
+                  trigger={
+                    <button
+                      type="button"
+                      className="w-full text-left focus:outline-none transition active:scale-[0.99] hover:opacity-90"
+                    >
+                      <TransactionRow
+                        transaction={t}
+                        accountLabel={accountMap.get(t.account_id)}
+                        categoryLabel={t.category_id ? categoryMap.get(t.category_id)?.name : "Tanpa kategori"}
+                        categoryIcon={t.category_id ? categoryMap.get(t.category_id)?.icon : "✨"}
+                        toAccountLabel={(t as any).toAccountLabel}
+                      />
+                    </button>
+                  }
                 />
               ))}
             </div>

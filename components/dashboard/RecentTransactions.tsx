@@ -6,6 +6,7 @@ import { ReceiptText } from "lucide-react"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { SkeletonCard } from "@/components/shared/SkeletonCard"
 import { TransactionRow } from "@/components/transaksi/TransactionRow"
+import { EditTransactionModal } from "@/components/transaksi/EditTransactionModal"
 import { useTransactions } from "@/lib/hooks/useTransactions"
 import { useAccounts } from "@/lib/hooks/useAccounts"
 import { useCategories } from "@/lib/hooks/useCategories"
@@ -42,12 +43,22 @@ export function RecentTransactions() {
           />
         ) : (
           recent.map((t) => (
-            <TransactionRow
+            <EditTransactionModal
               key={t.id}
               transaction={t}
-              accountLabel={accountMap.get(t.account_id)}
-              categoryLabel={t.category_id ? categoryMap.get(t.category_id)?.name : "Tanpa kategori"}
-              categoryIcon={t.category_id ? categoryMap.get(t.category_id)?.icon : "✨"}
+              trigger={
+                <button
+                  type="button"
+                  className="w-full text-left focus:outline-none transition active:scale-[0.99] hover:opacity-90"
+                >
+                  <TransactionRow
+                    transaction={t}
+                    accountLabel={accountMap.get(t.account_id)}
+                    categoryLabel={t.category_id ? categoryMap.get(t.category_id)?.name : "Tanpa kategori"}
+                    categoryIcon={t.category_id ? categoryMap.get(t.category_id)?.icon : "✨"}
+                  />
+                </button>
+              }
             />
           ))
         )}
