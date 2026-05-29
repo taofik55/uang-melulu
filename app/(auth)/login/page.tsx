@@ -28,6 +28,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -117,7 +118,8 @@ export default function LoginPage() {
         return;
       }
 
-      toast.success("Berhasil masuk");
+      // toast.success("Berhasil masuk");
+      setIsRedirecting(true);
       router.replace("/");
       router.refresh();
     } catch {
@@ -126,6 +128,33 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  if (isRedirecting) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background animate-in fade-in duration-300">
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+        <div className="flex flex-col items-center max-w-xs text-center space-y-6">
+          <div className="relative flex items-center justify-center">
+            {/* Pulsing glow background */}
+            <div className="absolute size-24 rounded-full bg-primary/10 blur-xl animate-pulse" />
+            
+            {/* The Logo Container */}
+            <div className="relative size-16 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lg">
+              <Wallet className="size-8 text-primary animate-pulse" />
+            </div>
+            
+            {/* Spinning loader outer ring */}
+            <div className="absolute -inset-2 rounded-[22px] border-2 border-primary/20 border-t-primary animate-spin" />
+          </div>
+          
+          <div className="space-y-2 animate-in slide-in-from-bottom-4 duration-500 delay-100">
+            <h3 className="font-semibold text-lg text-foreground animate-pulse">Memasuki Uang Melulu</h3>
+            <p className="text-sm text-muted-foreground">Mempersiapkan dasbor keuangan Anda...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-dvh bg-background">
@@ -165,7 +194,15 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Kata sandi</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Kata sandi</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Lupa kata sandi?
+                  </Link>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"

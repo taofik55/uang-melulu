@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   CreditCard,
@@ -14,6 +14,7 @@ import {
   TrendingUp,
   HandCoins,
 } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 import { cn } from "@/lib/utils/cn";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -36,6 +37,7 @@ const nav = [
 ];
 
 export function Sidebar() {
+  const router = useRouter();
   const pathname = usePathname();
   const [profile, setProfile] = React.useState<AppUser | null>(null);
   const [profileLoading, setProfileLoading] = React.useState(true);
@@ -144,35 +146,72 @@ export function Sidebar() {
       </nav>
 
       <div className="pt-4 border-t border-border flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
-          {profileLoading ? (
-            <>
-              <div className="size-8 rounded-full bg-muted border border-border animate-pulse" />
-              <div className="text-sm space-y-1">
-                <div className="h-3 w-20 rounded bg-muted border border-border animate-pulse" />
-                <div className="h-3 w-14 rounded bg-muted border border-border animate-pulse" />
-              </div>
-            </>
-          ) : (
-            <>
-              <Avatar
-                key={profile?.avatar_url ?? "no-avatar"}
-                className="size-8"
+        {profileLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="size-8 rounded-full bg-muted border border-border animate-pulse" />
+            <div className="text-sm space-y-1">
+              <div className="h-3 w-20 rounded bg-muted border border-border animate-pulse" />
+              <div className="h-3 w-14 rounded bg-muted border border-border animate-pulse" />
+            </div>
+          </div>
+        ) : (
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-xl p-1 -m-1 hover:bg-muted text-left outline-none transition duration-150 ease-in-out min-w-0 flex-1 mr-2"
+                aria-label="Menu akun"
               >
-                {profile?.avatar_url ? (
-                  <AvatarImage src={profile.avatar_url} alt={displayName} />
-                ) : null}
-                <AvatarFallback className="bg-primary/15 text-primary">
-                  {initials || "UM"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-sm">
-                <div className="font-medium leading-tight">{displayName}</div>
-                <div className="text-xs text-muted-foreground">{subtitle}</div>
-              </div>
-            </>
-          )}
-        </div>
+                <Avatar
+                  key={profile?.avatar_url ?? "no-avatar"}
+                  className="size-8 shrink-0"
+                >
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} alt={displayName} />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/15 text-primary">
+                    {initials || "UM"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-sm min-w-0">
+                  <div className="font-medium leading-tight truncate">{displayName}</div>
+                  <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
+                </div>
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                side="top"
+                align="start"
+                sideOffset={10}
+                className={cn(
+                  "z-50 min-w-[180px] rounded-xl border border-border bg-card p-1 shadow-md outline-none",
+                  "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                )}
+              >
+                <DropdownMenu.Item asChild>
+                  <Link
+                    href="/pengaturan"
+                    className="flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-muted"
+                  >
+                    Pengaturan
+                  </Link>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className="flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-muted text-accent-red"
+                  onSelect={async (e) => {
+                    e.preventDefault();
+                    const supabase = createSupabaseBrowserClient();
+                    await supabase.auth.signOut();
+                    router.replace("/login");
+                  }}
+                >
+                  Logout
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        )}
         <ThemeToggle />
       </div>
     </div>

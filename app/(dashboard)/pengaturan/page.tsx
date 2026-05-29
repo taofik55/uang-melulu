@@ -233,7 +233,8 @@ export default function PengaturanPage() {
                     }
 
                     const { data } = supabase.storage.from("avatars").getPublicUrl(path)
-                    const nextUrl = data.publicUrl
+                    // Tambahkan cache-buster (timestamp) agar browser langsung memuat foto terbaru
+                    const nextUrl = `${data.publicUrl}?t=${Date.now()}`
 
                     const { error: updateError } = await supabase.from("users").update({ avatar_url: nextUrl }).eq("id", user.id)
                     if (updateError) {
