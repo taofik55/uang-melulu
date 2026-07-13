@@ -269,6 +269,80 @@ create trigger on_transaction_balance
   for each row execute procedure public.update_account_balance();
 
 
+-- Update saldo akun otomatis saat transfer dibuat, diubah, atau dihapus
+create or replace function public.update_transfer_balance()
+returns trigger language plpgsql security definer as $$
+declare
+  v_from_account_id uuid;
+  v_to_account_id uuid;
+begin
+  if TG_OP = 'INSERT' then
+    -- Ambil account_id dari transactions
+    select account_id into v_from_account_id from public.transactions where id = new.from_transaction_id;
+    select account_id into v_to_account_id from public.transactions where id = new.to_transaction_id;
+    
+    -- Kurangi saldo pengirim, tambah saldo penerima
+    update public.accounts set balance = balance - new.amount where id = v_from_account_id;
+    update public.accounts set balance = balance + new.amount where id = v_to_account_id;
+    
+  elsif TG_OP = 'UPDATE' then
+    -- Ambil account_id dari transactions
+    select account_id into v_from_account_id from public.transactions where id = new.from_transaction_id;
+    select account_id into v_to_account_id from public.transactions where id = new.to_transaction_id;
+    
+    -- Kembalikan saldo dengan amount lama
+    update public.accounts set balance = balance + old.amount where id = v_from_account_id;
+    update public.accounts set balance = balance - old.amount where id = v_to_account_id;
+    
+    -- Terapkan saldo dengan amount baru
+    update public.accounts set balance = balance - new.amount where id = v_from_account_id;
+    update public.accounts set balance = balance + new.amount where id = v_to_account_id;
+    
+  elsif TG_OP = 'DELETE' then
+    -- Ambil account_id dari transactions
+    select account_id into v_from_account_id from public.transactions where id = old.from_transaction_id;
+    select account_id into v_to_account_id from public.transactions where id = old.to_transaction_id;
+    
+    -- Kembalikan saldo sebelum transfer dihapus
+    if v_from_account_id is not null then
+      update public.accounts set balance = balance + old.amount where id = v_from_account_id;
+    end if;
+    if v_to_account_id is not null then
+      update public.accounts set balance = balance - old.amount where id = v_to_account_id;
+    end if;
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+
+create trigger on_transfer_balance_insert
+  after insert on public.transfers
+  for each row execute procedure public.update_transfer_balance();
+
+create trigger on_transfer_balance_update
+  after update on public.transfers
+  for each row execute procedure public.update_transfer_balance();
+
+create trigger on_transfer_balance_delete
+  before delete on public.transfers
+  for each row execute procedure public.update_transfer_balance();
+
+
+-- Hapus transaksi pasangan otomatis jika salah satu transaksi transfer dihapus
+create or replace function public.handle_transfer_delete()
+returns trigger language plpgsql security definer as $$
+begin
+  delete from public.transactions 
+  where id in (old.from_transaction_id, old.to_transaction_id);
+  return old;
+end;
+$$;
+
+create trigger on_transfer_delete
+  after delete on public.transfers
+  for each row execute procedure public.handle_transfer_delete();
+
+
 -- ============================================================
 -- 5. ROW LEVEL SECURITY (RLS)
 -- ============================================================

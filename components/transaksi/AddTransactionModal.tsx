@@ -141,6 +141,7 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
 
       emitDataChanged("transactions");
       emitDataChanged("accounts");
+      emitDataChanged("budgets");
       if (type === "transfer") emitDataChanged("transfers");
       setOpen(false);
       form.reset({

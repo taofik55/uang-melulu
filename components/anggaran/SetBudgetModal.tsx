@@ -14,6 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/shared/CurrencyInput";
 import { SelectPopover } from "@/components/shared/SelectPopover";
+import { format, startOfMonth, startOfWeek, startOfYear } from "date-fns";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { emitDataChanged } from "@/lib/utils/events";
@@ -95,7 +96,19 @@ export function SetBudgetModal() {
                   }
 
                   const now = new Date();
-                  const start = now.toISOString().slice(0, 10);
+                  let startDateVal: Date;
+
+                  if (period === "weekly") {
+                    startDateVal = startOfWeek(now, { weekStartsOn: 1 });
+                  } else if (period === "yearly") {
+                    startDateVal = startOfYear(now);
+                  } else {
+                    startDateVal = startOfMonth(now);
+                  }
+
+                  // Format locally to prevent timezone offset shifts
+                  const start = format(startDateVal, "yyyy-MM-dd");
+
                   const { error } = await supabase.from("budgets").upsert(
                     {
                       user_id: user.id,
