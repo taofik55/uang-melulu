@@ -158,7 +158,7 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="w-full max-w-[calc(100vw-1rem)] sm:max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
+      <DialogContent aria-describedby={undefined} className="w-full max-w-[calc(100vw-1rem)] sm:max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Tambah Transaksi</DialogTitle>
         </DialogHeader>
@@ -217,12 +217,12 @@ export function AddTransactionModal({ trigger }: { trigger: React.ReactNode }) {
                       <span className="truncate">
                         {form.watch("transaction_date")
                           ? format(
-                              parseISO(form.watch("transaction_date")),
-                              "d MMM yyyy",
-                              {
-                                locale: idLocale,
-                              },
-                            )
+                            parseISO(form.watch("transaction_date")),
+                            "d MMM yyyy",
+                            {
+                              locale: idLocale,
+                            },
+                          )
                           : "Pilih tanggal…"}
                       </span>
                       <CalendarDays className="size-4 shrink-0 text-muted-foreground" />

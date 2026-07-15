@@ -34,7 +34,7 @@ export function SetBudgetModal() {
       <DialogTrigger asChild>
         <Button type="button">Atur Anggaran</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent aria-describedby={undefined} className="max-w-md">
         <DialogHeader>
           <DialogTitle>Atur Anggaran</DialogTitle>
         </DialogHeader>

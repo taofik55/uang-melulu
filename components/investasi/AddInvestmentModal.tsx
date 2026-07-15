@@ -26,7 +26,7 @@ export function AddInvestmentModal() {
       <DialogTrigger asChild>
         <Button type="button">Tambah</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent aria-describedby={undefined} className="max-w-md">
         <DialogHeader>
           <DialogTitle>Tambah Investasi</DialogTitle>
         </DialogHeader>

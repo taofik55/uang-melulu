@@ -148,7 +148,7 @@ export function EditTransactionModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="w-full max-w-[calc(100vw-1rem)] sm:max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
+      <DialogContent aria-describedby={undefined} className="w-full max-w-[calc(100vw-1rem)] sm:max-w-lg flex flex-col max-h-[90dvh] md:max-h-[85vh]">
         <DialogHeader className="flex flex-row items-center justify-between pr-6 border-b border-border pb-3">
           <DialogTitle>Ubah Transaksi</DialogTitle>
           <button
@@ -215,12 +215,12 @@ export function EditTransactionModal({
                       <span className="truncate">
                         {form.watch("transaction_date")
                           ? format(
-                              parseISO(form.watch("transaction_date")),
-                              "d MMM yyyy",
-                              {
-                                locale: idLocale,
-                              },
-                            )
+                            parseISO(form.watch("transaction_date")),
+                            "d MMM yyyy",
+                            {
+                              locale: idLocale,
+                            },
+                          )
                           : "Pilih tanggal…"}
                       </span>
                       <CalendarDays className="size-4 shrink-0 text-muted-foreground" />

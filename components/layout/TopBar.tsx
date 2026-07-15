@@ -23,6 +23,7 @@ import {
   Settings,
   TrendingUp,
   Users,
+  Info
 } from "lucide-react";
 import Image from "next/image";
 
@@ -64,7 +65,7 @@ export function TopBar() {
 
   React.useEffect(() => {
     mountedRef.current = true;
-    fetchProfile().catch(() => {});
+    fetchProfile().catch(() => { });
     const off = onDataChanged((key) => {
       if (key === "profile") fetchProfile();
     });
@@ -295,6 +296,13 @@ export function TopBar() {
                     active={pathname.startsWith("/pengaturan")}
                     onNavigate={() => setMobileNavOpen(false)}
                   />
+                  <MobileNavItem
+                    href="/about"
+                    label="Tentang"
+                    icon={Info}
+                    active={pathname.startsWith("/about")}
+                    onNavigate={() => setMobileNavOpen(false)}
+                  />
                 </nav>
               </div>
 
@@ -341,7 +349,7 @@ export function TopBar() {
                   </DropdownMenu.Portal>
                 </DropdownMenu.Root>
               </div>
-              
+
             </div>
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>

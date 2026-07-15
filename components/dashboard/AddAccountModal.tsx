@@ -27,7 +27,7 @@ export function AddAccountModal({ trigger }: { trigger: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent aria-describedby={undefined} className="max-w-md">
         <DialogHeader>
           <DialogTitle>Tambah Akun</DialogTitle>
         </DialogHeader>

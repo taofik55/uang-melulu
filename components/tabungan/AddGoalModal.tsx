@@ -50,7 +50,7 @@ export function AddGoalModal() {
       <DialogTrigger asChild>
         <Button type="button">Tambah Target</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent aria-describedby={undefined} className="max-w-md">
         <DialogHeader>
           <DialogTitle>Tambah Target Tabungan</DialogTitle>
         </DialogHeader>

@@ -314,7 +314,7 @@ export default function PengaturanPage() {
               </div>
 
               <Dialog open={avatarPreviewOpen} onOpenChange={setAvatarPreviewOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent aria-describedby={undefined} className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Avatar</DialogTitle>
                   </DialogHeader>
