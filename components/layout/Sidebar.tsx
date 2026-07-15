@@ -7,6 +7,7 @@ import {
   BarChart3,
   CreditCard,
   Home,
+  Info,
   PiggyBank,
   Settings,
   Users,
@@ -34,6 +35,7 @@ const nav = [
   { href: "/keluarga", label: "Keluarga", icon: Users },
   { href: "/laporan", label: "Laporan", icon: BarChart3 },
   { href: "/pengaturan", label: "Pengaturan", icon: Settings },
+  { href: "/about", label: "Tentang", icon: Info },
 ];
 
 export function Sidebar() {

@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils/cn"
 import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { User as AppUser } from "@/lib/types/database"
 import { emitDataChanged } from "@/lib/utils/events"
+import Link from "next/link"
+import { Info } from "lucide-react"
 
 export default function PengaturanPage() {
   const [loading, setLoading] = React.useState(true)
@@ -292,10 +294,10 @@ export default function PengaturanPage() {
                       setProfile((p) =>
                         p
                           ? {
-                              ...p,
-                              full_name: fullName.trim() || null,
-                              username: nextUsername,
-                            }
+                            ...p,
+                            full_name: fullName.trim() || null,
+                            username: nextUsername,
+                          }
                           : p
                       )
                       toast.success("Profil diperbarui!")
@@ -363,6 +365,17 @@ export default function PengaturanPage() {
           </button>
         </CardContent>
       </Card>
+
+      {/* link ke halaman About */}
+      <div className="flex justify-center pt-1 pb-2">
+        <Link
+          href="/about"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+        >
+          <Info className="size-3" />
+          Tentang Developer
+        </Link>
+      </div>
     </div>
   )
 }

@@ -7,6 +7,7 @@ import {
   BarChart3,
   HandCoins,
   Home,
+  Info,
   MoreHorizontal,
   PiggyBank,
   Plus,
@@ -28,7 +29,8 @@ export function BottomNav() {
     pathname.startsWith("/tabungan") ||
     pathname.startsWith("/pinjaman") ||
     pathname.startsWith("/investasi") ||
-    pathname.startsWith("/keluarga");
+    pathname.startsWith("/keluarga") ||
+    pathname.startsWith("/about");
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card">
@@ -165,6 +167,15 @@ function MoreMenu({ active }: { active: boolean }) {
             >
               <Users className="size-4" />
               Keluarga
+            </Link>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item asChild>
+            <Link
+              href="/about"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted"
+            >
+              <Info className="size-4" />
+              Tentang Developer
             </Link>
           </DropdownMenu.Item>
         </DropdownMenu.Content>
