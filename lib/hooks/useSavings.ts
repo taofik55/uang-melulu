@@ -23,7 +23,7 @@ export function useSavings() {
     const supabase = createSupabaseBrowserClient()
     const { data: rows, error } = await supabase
       .from("savings_goals")
-      .select("id,user_id,name,target_amount,current_amount,target_date,icon,is_completed,created_at")
+      .select("id,user_id,name,target_amount,current_amount,target_date,icon,is_completed,created_at,account_id")
       .order("created_at", { ascending: false })
 
     if (error) {

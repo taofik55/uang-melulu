@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,19 +19,35 @@ import { emitDataChanged } from "@/lib/utils/events";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useAccounts } from "@/lib/hooks/useAccounts";
 import { SelectPopover } from "@/components/shared/SelectPopover";
+import type { SavingsGoal } from "@/lib/types/database";
 
-export function AddGoalModal() {
-  const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState("");
-  const [icon, setIcon] = React.useState("🎯");
-  const [hasTarget, setHasTarget] = React.useState(true);
-  const [target, setTarget] = React.useState(0);
-  const [date, setDate] = React.useState("");
-  const [importFromAccount, setImportFromAccount] = React.useState(false);
-  const [accountId, setAccountId] = React.useState("");
+interface EditGoalModalProps {
+  goal: SavingsGoal;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function EditGoalModal({ goal, open, onOpenChange }: EditGoalModalProps) {
+  const [name, setName] = React.useState(goal.name);
+  const [icon, setIcon] = React.useState(goal.icon || "🎯");
+  const [hasTarget, setHasTarget] = React.useState(goal.target_amount !== null);
+  const [target, setTarget] = React.useState(goal.target_amount || 0);
+  const [date, setDate] = React.useState(goal.target_date || "");
+  const [importFromAccount, setImportFromAccount] = React.useState(!!goal.account_id);
+  const [accountId, setAccountId] = React.useState(goal.account_id || "");
   const [iconOpen, setIconOpen] = React.useState(false);
 
   const { data: accounts } = useAccounts();
+
+  React.useEffect(() => {
+    setName(goal.name);
+    setIcon(goal.icon || "🎯");
+    setHasTarget(goal.target_amount !== null);
+    setTarget(goal.target_amount || 0);
+    setDate(goal.target_date || "");
+    setImportFromAccount(!!goal.account_id);
+    setAccountId(goal.account_id || "");
+  }, [goal, open]);
 
   const ICON_OPTIONS = [
     "💰",
@@ -56,30 +71,11 @@ export function AddGoalModal() {
     !name ||
     (hasTarget ? target <= 0 : importFromAccount ? !accountId : false);
 
-  const resetForm = () => {
-    setName("");
-    setIcon("🎯");
-    setHasTarget(true);
-    setTarget(0);
-    setDate("");
-    setImportFromAccount(false);
-    setAccountId("");
-  };
-
-  React.useEffect(() => {
-    if (!open) {
-      resetForm();
-    }
-  }, [open]);
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type="button">Tambah Target</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent aria-describedby={undefined} className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Tambah Target Tabungan</DialogTitle>
+          <DialogTitle>Ubah Target Tabungan</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -218,43 +214,33 @@ export function AddGoalModal() {
           )}
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Batal
             </Button>
             <Button
               onClick={async () => {
                 try {
                   const supabase = createSupabaseBrowserClient();
-                  const {
-                    data: { user },
-                    error: userError,
-                  } = await supabase.auth.getUser();
-                  if (userError || !user) {
-                    toast.error("Kamu belum login");
-                    return;
-                  }
-
                   const { error } = await supabase
                     .from("savings_goals")
-                    .insert({
-                      user_id: user.id,
+                    .update({
                       name,
                       icon,
                       target_amount: hasTarget ? target : null,
-                      current_amount: 0,
                       target_date: hasTarget && date ? date : null,
-                      is_completed: false,
                       account_id: (!hasTarget && importFromAccount) ? accountId : null,
-                    });
+                    })
+                    .eq("id", goal.id);
+
                   if (error) {
                     toast.error(error.message);
                     return;
                   }
                   emitDataChanged("savings");
-                  setOpen(false);
-                  toast.success("Target dibuat!");
+                  onOpenChange(false);
+                  toast.success("Target diperbarui!");
                 } catch {
-                  toast.error("Gagal buat target");
+                  toast.error("Gagal memperbarui target");
                 }
               }}
               disabled={isSaveDisabled}

@@ -13,9 +13,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 /* ─── data ─────────────────────────────────────────────────── */
 const SOCIALS = [
   {
-    href: "https://github.com/taofikrsudrajat",
+    href: "https://github.com/taofik55",
     label: "GitHub",
-    username: "@taofikrsudrajat",
+    username: "@taofik55",
     icon: FaGithub,
     color: "from-zinc-500/20 to-zinc-600/10 hover:from-zinc-500/30 hover:to-zinc-600/20",
     ring: "hover:ring-zinc-500/30",
@@ -31,18 +31,18 @@ const SOCIALS = [
     iconColor: "text-pink-500",
   },
   {
-    href: "https://facebook.com/taofikrsudrajat",
+    href: "https://www.facebook.com/taofik.rakhman/",
     label: "Facebook",
-    username: "/taofikrsudrajat",
+    username: "Taofik Rakhman Sudrajat",
     icon: FaFacebook,
     color: "from-blue-500/20 to-blue-600/10 hover:from-blue-500/30 hover:to-blue-600/20",
     ring: "hover:ring-blue-500/30",
     iconColor: "text-blue-500",
   },
   {
-    href: "https://linkedin.com/in/taofikrsudrajat",
+    href: "https://www.linkedin.com/in/taofik-rakhman-sudrajat-aa0514173/",
     label: "LinkedIn",
-    username: "/taofikrsudrajat",
+    username: "Taofik Rakhman Sudrajat",
     icon: FaLinkedin,
     color: "from-sky-500/20 to-sky-700/10 hover:from-sky-500/30 hover:to-sky-700/20",
     ring: "hover:ring-sky-500/30",

@@ -75,12 +75,13 @@ export interface SavingsGoal {
   id: string
   user_id: string
   name: string
-  target_amount: number
+  target_amount: number | null
   current_amount: number
   target_date: string | null
   icon: string | null
   is_completed: boolean
   created_at: string
+  account_id: string | null
 }
 
 export interface SavingsContribution {
